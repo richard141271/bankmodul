@@ -10,8 +10,8 @@ export async function getCurrentUser() {
     update: {}, // No changes if user exists
     create: {
       email,
-      name: "Demo User",
-      role: "VIP",
+      name: "Demo Admin",
+      role: "ADMIN",
       wallet: {
         create: {
           accountNumber: "AT-" + Math.floor(10000 + Math.random() * 90000),
