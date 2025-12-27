@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("MEMBER") // MEMBER, VIP, ADMIN
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  wallet    Wallet?
+  fikenInfo FikenIntegration?
+}
+
+model Wallet {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  user          User          @relation(fields: [userId], references: [id])
+  accountNumber String        @unique // AT-xxxxx
+  balance       Float         @default(0.0) // Internal currency (AT)
+  currency      String        @default("AT")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  transactions  Transaction[]
+}
+
+model Transaction {
+  id          String            @id @default(cuid())
+  walletId    String
+  wallet      Wallet            @relation(fields: [walletId], references: [id])
+  amount      Float
+  type        String            // TransactionType: DEPOSIT, WITHDRAWAL, EXPENSE, INCOME
+  status      String            @default("PENDING") // TransactionStatus: PENDING, COMPLETED, FAILED, CANCELLED
+  description String?
+  reference   String?           // External reference (e.g. Stripe ID)
+  fikenId     String?           // Fiken Invoice/Journal/Payment ID
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model FikenIntegration {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
+  fikenContactId String?  // Fiken Contact ID
+  lastSyncedAt   DateTime @default(now())
+}
+
